@@ -1,2 +1,7 @@
 .ipynb_checkpoints
 *~
+*.aux
+*.log
+*.toc
+ltximg
+obipy-resources
