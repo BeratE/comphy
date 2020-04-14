@@ -1,0 +1,90 @@
+% Created 2020-04-14 Tue 13:06
+% Intended LaTeX compiler: pdflatex
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{grffile}
+\usepackage{longtable}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{textcomp}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\author{Berat Ertural 406055}
+\date{16.04.20}
+\title{Computational Physics Exercise 1}
+\hypersetup{
+ pdfauthor={Berat Ertural 406055},
+ pdftitle={Computational Physics Exercise 1},
+ pdfkeywords={},
+ pdfsubject={},
+ pdfcreator={Emacs 26.3 (Org mode 9.1.9)}, 
+ pdflang={English}}
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+
+
+\section{Derivative Formula}
+\label{sec:org7b24678}
+
+Let \(h\) be constant and let \(f(x-2h),f(x-h),f(x+h),f(x+2h)\) 
+contain the Taylor expansion up to order 4 with the error term in \(O(h^5)\). 
+We first construct the following;
+\begin{equation}
+f(x+h) + f(x-h) = 2f(x)+h^2 f^{''}(x)+ \frac{h^4}{12} f^{''''}(x) + O(h^6)
+\end{equation}
+Obtaining an error bound in \(O(h^6)\) since derivatives of uneven order cancel out. Similarily we get;
+\begin{equation}
+f(x+2h) + f(x-2h) = 2f(x)+4 h^2 f^{''}(x)+ \frac{16 h^4}{12} f^{''''}(x) +O(h^6)
+\end{equation}
+
+Multplying equation (1) by 16 and subtracting equation (2) we get the desired result;
+\begin{multline}
+-f(x+2h)+16f(x+h)+16f(x-h)-f(x-2h) = 30f(x)+ 12 h^2 f^{''}(x) + O(h^6) \\
+\Rightarrow f^{''}(x) = \frac{1}{h^2}[-\frac{1}{12}f(x+2h)+\frac{4}{3}f(x+h)-\frac{5}{2}f(x)+\frac{4}{3}f(x-h)-\frac{1}{12}f(x-2h)] + O(h^4)
+\end{multline}
+
+Which is a \textbf{central 5-point formula} for the second derivative of \textbf{4-th order accuracy}.
+
+\section{2. Simpson Rule}
+\label{sec:org21d5b58}
+\subsection{Simpson integration in Python}
+\label{sec:org80be0c9}
+The following function evaluates the integral of a given function \(f(x)\) on a finite interval 
+\(x \in [a,b]\) using a set of \(n\) equidistant sample points.
+
+\begin{verbatim}
+import math
+
+def simpson(f, a, b, n):
+    """Approximate the Integral of f in the interval
+    between a and b using n equidistant sample points using 
+    Simpsons rule. The number of sample points can be even or odd."""
+    # Enforce oddity
+    n = max (n, 2)
+    h = (b-a)/(n-1)
+    odd_n = n -1 + n%2 # Enforce oddity
+    S = f(a) + f(a+(odd_n-1)*h)
+    # Integrate over alternating coefficients
+    for i in range(1, n-1, 2):
+	S += 4*f(a + i * h)
+    for i in range(2, n-2, 2):
+	S += 2*f(a + i * h)
+    S *= h/3
+    # Case n even
+    if (n%2 == 0):
+	S += (h/12)* (5*f(b) + 8*f(b-h) - f(b-2*h))
+    return S
+
+# Lets output a test value
+simpson(math.sin, 0, math.pi/2, 8)
+\end{verbatim}
+\end{document}
