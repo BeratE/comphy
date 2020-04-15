@@ -1,28 +1,11 @@
-#+OPTIONS: tex:t
 #+TITLE: Computational Physics Exercise 1
 #+AUTHOR: Berat Ertural 406055
 #+DATE: 16.04.20
 #+EMAIL: berat.ertural@rwth-aachen.de
 #+LANGUAGE: en
+#+OPTIONS: tex:t
+#+OPTIONS: toc:nil 
 #+LATEX_HEADER_EXTRA: \usepackage{amsmath}
-
-
-* Creating a Python virtual environment                            :noexport:
-  :PROPERTIES:
-  :header-args: :eval never-export
-  :header-args:bash: :exports code
-  :header-args:elisp: :exports code
-  :header-args:ipython: :exports both
-  :END:
-
-#+BEGIN_SRC bash :dir ~/py_venv :results silent
-  virtualenv py_venv
-#+END_SRC
-#+BEGIN_SRC elisp :results silent
-  (pyvenv-activate "~/py_venv")
-#+END_SRC
-
-
 
 * Derivative Formula
 
@@ -50,7 +33,7 @@ Which is a *central 5-point formula* for the second derivative of *4-th order ac
 The following function evaluates the integral of a given function \(f(x)\) on a finite interval 
 \(x \in [a,b]\) using a set of \(n\) equidistant sample points.
 
-#+BEGIN_SRC ipython :results value :session pysession
+#+BEGIN_SRC ipython :tangle yes :results value :exports both :session pysession
 import math
 
 def simpson(f, a, b, n):
@@ -75,30 +58,31 @@ def simpson(f, a, b, n):
 
 # Lets output a test value
 simpson(math.sin, 0, math.pi/2, 8)
+
 #+END_SRC
 
 #+RESULTS:
-: # Out[2]:
-: : 0.9999906618321359
+: 0.9999906618321359
 
-** Example case
+** Example
+*** Integrating \( sin(x)\) with Simpsons rule
 Now let us consider \(sin(x)\) over the interval \([0, \frac{\pi}{2}]\). 
 For the integral we get \(S = \int_{0}^{\frac{\pi}{2}} sin(x) dx = 1\). 
 So the deviation from the analytical result for our example is given by \(\Delta S = 1 - S_s(h)\), 
 where \(S_s(h)\) is our Simpson integral of step-size \(h\). 
-
 The theoretical discretization error bound for the Simpson rule is given by;
 \begin{equation}
 \Delta S = S-S_s(h) \leq \frac{\gamma}{180}(b-a)h^4
 \end{equation}
 where \(\gamma \geq |f^{''''}(x)|\) is usually the smallest possible value
-greater than or equal to the\($(n+1)})-th differential of \(f(x)\) between the upper and lower interval bound. 
+greater than or equal to the\((n+1)\)-th differential of \(f(x)\) between the upper and lower interval bound. 
 In our case \(\gamma = 1\).
 
+*** Plotting the values
 
 The following code demonstrates the Simpson integration function with the discussed values.
 
-#+BEGIN_SRC ipython :results output :session pysession :async t
+#+BEGIN_SRC ipython :results output :tangle yes :exports both :session pysession
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.stats as stats
@@ -109,15 +93,16 @@ def deltaSimpson(a, b, n, k):
 
 # Collect Simpson integrals and errors for different n in [0, pi/2]
 n = []
-deltaSt = []  # theoretical error
-simpsons = [] 
+S = [] 
+ErrBound = []  # theoretical error
 # Interation Number, Number of Sample Points, S_T(h_n), Delta S 
 print("{:10}| {:10}| {:20}| {:20}".format("Iteration", "N", "S_s", "Delta S"))
 for k in range(1, 8):
     n.append(10**k)
-    simpsons.append(simpson(math.sin, 0, math.pi/2, n[k-1]))
-    deltaSt.append(deltaSimpson(0, math.pi/2, n[k-1], 1))
-    print("{:10}| {:10}| {:20}| {:20}".format(k, n[k-1], simpsons[k-1], deltaSt[k-1]))
+    S.append(simpson(math.sin, 0, math.pi/2, n[k-1]))
+    ErrBound.append(deltaSimpson(0, math.pi/2, n[k-1], 1))
+    print("{:10}| {:10}| {:20}| {:20}".format(k, n[k-1], S[k-1], ErrBound[k-1]))
+
 
 #+END_SRC
 
@@ -131,12 +116,14 @@ for k in range(1, 8):
 :          6|    1000000|   1.0000000000000517| 5.312841749744469e-26
 :          7|   10000000|   0.9999999999999992| 5.312841749744469e-30
 
-#+BEGIN_SRC ipython :results output :session pysession
+#+BEGIN_SRC ipython :results output :tangle yes :exports both :session pysession
 # Actual error is 1 - S_T(h)
-deltaSa = [] # actual error
-for i in simpsons:
+Deviation = [] # actual error
+for i in S:
     print("1 - {} = {}".format(i, abs(1-i)))
-    deltaSa.append(abs(1-i))
+    Deviation.append(abs(1-i))
+
+
 #+END_SRC
 
 #+RESULTS:
@@ -148,9 +135,9 @@ for i in simpsons:
 : 1 - 1.0000000000000517 = 5.1736392947532295e-14
 : 1 - 0.9999999999999992 = 7.771561172376096e-16
 
-#+BEGIN_SRC ipython :results drawer :async t :session pysession
-line1, = plt.plot(n, deltaSa, '--', label='Actual Error')
-line2, = plt.plot(n, deltaSt, '-.', label='Theoretical Error')
+#+BEGIN_SRC ipython :results drawer :tangle yes :exports both :session pysession
+line1, = plt.plot(n, Deviation, '--', label='Actual Error')
+line2, = plt.plot(n, ErrBound, '-.', label='Theoretical Error')
 # Log-Log plot of actual error versus theoretical error
 plt.grid()
 plt.xscale("log")
@@ -158,13 +145,17 @@ plt.yscale("log")
 plt.xlabel("Number of samples N")
 plt.legend(handles=[line1, line2], loc='best')
 plt.show()
+
+
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-# Out[30]:
-[[file:./obipy-resources/ktweJO.png]]
+# Out[36]:
+[[file:./obipy-resources/99GtAS.png]]
 :END:
+
+*** The discretization error
 
 Above is the log-log plot of the actual deviation from the analytical function and 
 the theoretical error bound of the Simpson rule. The actual error (blue) shows artifacts 
@@ -173,9 +164,9 @@ This is due to the finite internal represention of floating point units in the u
 and the resulting round-off errors for very small fractions.
 
 * Romberg Integration
-
+** Neville scheme
 Let \(R_{n,0}\) be \(S_T(h_n)\) as the first column (column number 0) of the Neville scheme, 
-with \(S_T(h_n)\ being the \(n\)-th order integral using the trapezoidal rule. 
+with \(S_T(h_n)\) being the \(n\)-th order integral using the trapezoidal rule. 
 The recursion relation for column \(j\) and row \(n\) for the Neville scheme is given by;
 \begin{equation}
 	R_{n,j} = R_{n,j-1} + \frac{1}{4^j - 1}[R_{n,j-1}-R_{n-1,j-1}].
@@ -205,17 +196,18 @@ This is the Simpson rule in its most basic form.
 
 Now let us expand \(R_{n,1}\) for any \(n\);
 \begin{multline}
-R_{n,1} = \frac{1}{3} [ S_T(h_{n-1}) + 4h_n \sum_{i=1}^{2^{n-1}}f(a+(2i-i)h_n) ]\\
-= \frac{1}{3} [ (\frac{1}{2}S_T(h_{n-2})+2h_n \sum_{i=1}^{2^{n-2}}f(a+(2i-1)2h_n)) + 4 h_n \sum_{i=1}^{2^{n-1}}f(a+(2i-i)h_n) ]\\
+R_{n,1} = \frac{1}{3} [ S_T(h_{n-1}) + 4h_n \sum_{i=1}^{2^{n-1}}f(a+(2i-1)h_n) ] \\
+= \frac{1}{3} [ (\frac{1}{2}S_T(h_{n-2})+2h_n \sum_{i=1}^{2^{n-2}}f(a+(2i-1)2h_n)) 
+  + 4 h_n \sum_{i=1}^{2^{n-1}}f(a+(2i-i)h_n) ]\\
 = \frac{1}{3} [ (\frac{1}{2}(\frac{1}{2}S_T(h_{n-3})+4h_n \sum_{i=1}^{2^{n-3}}f(a+(2i-1)4h_n)
-))+2h_n \sum_{i=1}^{2^{n-2}}f(a+(2i-1)2h_n)) + 4 h_n \sum_{i=1}^{2^{n-1}}f(a+(2i-1)h_n) ]
+))+2h_n \sum_{i=1}^{2^{n-2}}f(a+(2i-1)2h_n)) \\ + 4 h_n \sum_{i=1}^{2^{n-1}}f(a+(2i-1)h_n) ]
 \end{multline}
 
 After \(n\) iterations, we end up with the following;
 \begin{multline}
-R_{n,1} = \frac{1}{3}h_n [ \frac{1}{2^n}S_T(h_0) + 2\sum_{j=1}^{n-2} \sum_{i=1}^{2^j} f(a+(2i-1)2^{n-1-j}h_n) + 4 \sum_{i=1}^{2^{n-1}}f(a+(2i-1)h_n) ]
+R_{n,1} = \frac{1}{3}h_n [ \frac{1}{2^n}S_T(h_0) + 2\sum_{j=1}^{n-2} \sum_{i=1}^{2^j} f(a+(2i-1)2^{n-1-j}h_n) + 4 \sum_{i=1}^{2^{n-1}}f(a+(2i-1)h_n) ]\\
 = \frac{1}{3}h_n [ f(a) + f(b) + 2\sum_{j=1}^{n-2} \sum_{i=1}^{2^j} f(a+(2i-1)2^{n-1-j}h_n) + 4 \sum_{i=1}^{2^{n-1}}f(a+(2i-1)h_n) ]\\
-= \frac{1}{3}h_n [ f(a) + f(b) + 2\sum_{i=1}^{n-2} f(a+ (2i) h_n) + 4 \sum_{i=1}^{2^{n-1}}f(a+(2i-1)h_n) ]
+= \frac{1}{3}h_n [ f(a) + f(b) + 2\sum_{i=1}^{2^{n-1}} f(a+ (2i) h_n) + 4 \sum_{i=1}^{2^{n-1}}f(a+(2i-1)h_n) ]
 \end{multline}
 
 Therefore we can see, that the second column of the Neville scheme corresponds to the Simpson rule, QED. 
@@ -225,7 +217,7 @@ Therefore we can see, that the second column of the Neville scheme corresponds t
 The following code implements the Romberg integration of the function \(f\) 
 in the interval \([a, b]\) using \(n\) steps of the Neville scheme.
 
-#+BEGIN_SRC ipython :result value :session pysession
+#+BEGIN_SRC ipython :result value :exports both :tangle yes :session pysession
 def romberg(f, a, b, n):
     """Romberg integration of f in [a,b] with n levels."""
     h = b-a # Interval size   
@@ -256,7 +248,8 @@ romberg(math.sin, 0, math.pi/2, 10)
 : # Out[32]:
 : : 1.0000000000000002
 
-*** Examples
+** Examples
+*** Integrating various functions with Romberg integration
 We will now examine a few examples.
 \begin{equation}
     \int_0^1 e^x dx \approx 1,718281828
@@ -268,7 +261,7 @@ We will now examine a few examples.
     \int_0^{1} x^{\frac{1}{2}} = \frac{2}{3} 
 \end{equation}
 
-#+BEGIN_SRC ipython :result output :async t :session pysession
+#+BEGIN_SRC ipython :result silent :tangle yes :session pysession
 k = 22
 # Tabulate the R_ii for the three test functions for increasing values of i
 Rii = np.zeros((3, k-2))
@@ -288,9 +281,9 @@ for i in range(0, k-2):
 #+END_SRC
 
 #+RESULTS:
-: # Out[38]:
+: # Out[28]:
 
-#+BEGIN_SRC ipython :results drawer :async t :session pysession
+#+BEGIN_SRC ipython :results drawer :tangle yes :exports both :session pysession
 x = np.linspace(0,k-2,k-2)
 
 fig, ((ax11, ax12, ax13), (ax21, ax22, ax23)) = plt.subplots(2, 3)
@@ -315,11 +308,11 @@ plt.show()
 
 #+RESULTS:
 :RESULTS:
-# Out[48]:
-[[file:./obipy-resources/bvDljq.png]]
+# Out[29]:
+[[file:./obipy-resources/aUe4gI.png]]
 :END:
 
-*** Results
+** Results
 In the top row of the above graph the \(R_{i,i}\) of equations (1), (2) and (3) is plotted 
 together with the deviation from the respective analytical result shown in the row below. 
 We can see, that all \(R_{i,i}\) converge around \(i=10\). 
@@ -332,3 +325,4 @@ at around \(i=10\) roughly corresponds to the range of \(n\) in \([10^3, 10^4]\)
 where the deviation of the Simpson integral showed artifacts. 
 A similar behaviour can be observed on the bottom row of the graph. 
 The respective deviations show slight irregularities after a certain iteration number.
+

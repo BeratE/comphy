@@ -3,5 +3,6 @@
 *.aux
 *.log
 *.toc
+*.out
 ltximg
 obipy-resources
